@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-gradient-to-br from-pastel-blue via-pastel-purple to-pastel-pink min-h-screen;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6;
+    @apply border border-white/50;
+    @apply transition-all duration-300;
+  }
+  
+  .card:hover {
+    @apply shadow-lg;
+    @apply border-white/80;
+  }
+  
+  .btn-primary {
+    @apply bg-gradient-to-r from-pastel-purple to-pastel-pink text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-medium hover:shadow-lg transition-all duration-200 text-xs sm:text-sm;
+    @apply relative overflow-hidden;
+    @apply border border-white/30;
+  }
+  
+  .btn-primary::before {
+    content: '';
+    @apply absolute inset-0 bg-white/20;
+    @apply transform -translate-x-full;
+    @apply transition-transform duration-500;
+  }
+  
+  .btn-primary:hover::before {
+    @apply translate-x-full;
+  }
+  
+  .btn-secondary {
+    @apply bg-white/60 text-gray-700 px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-medium hover:bg-white/80 transition-all duration-200 text-xs sm:text-sm;
+    @apply border border-gray-200;
+  }
+  
+  .btn-secondary:hover {
+    @apply border-gray-300;
+    @apply shadow-md;
+  }
+}
+
+/* 커스텀 스크롤바 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-pastel-purple/50 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-pastel-purple/70;
+}
+
+/* 모바일 최적화 */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* 터치 최적화 */
+  @media (hover: none) and (pointer: coarse) {
+    button, a {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+}
+
