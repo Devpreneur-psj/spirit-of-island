@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Spiritling } from '../types'
 import { useSpiritlingStore } from '../stores/spiritlingStore'
+import BuildingInteractionPanel from './BuildingInteractionPanel'
 
 interface SpiritlingPosition {
   spiritlingId: string
@@ -12,6 +13,7 @@ interface SpiritlingPosition {
 interface VillageCanvasProps {
   spiritlings: Spiritling[]
   onSpiritlingClick?: (spiritling: Spiritling) => void
+  onNavigate?: (locationId: string) => void
   readonly?: boolean // 읽기 전용 모드 (드래그 불가)
   autoMove?: boolean // 자동 이동 활성화
 }
@@ -19,6 +21,7 @@ interface VillageCanvasProps {
 export default function VillageCanvas({ 
   spiritlings, 
   onSpiritlingClick,
+  onNavigate,
   readonly = false,
   autoMove = true
 }: VillageCanvasProps) {
@@ -26,6 +29,7 @@ export default function VillageCanvas({
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [selectedSpiritling, setSelectedSpiritling] = useState<Spiritling | null>(null)
   const [movementTargets, setMovementTargets] = useState<Map<string, { x: number; y: number }>>(new Map())
+  const [selectedBuilding, setSelectedBuilding] = useState<{ id: string; name: string; type: string; icon: string; position: { x: number; y: number } } | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
   const animationFrameRef = useRef<number>()
 
@@ -283,7 +287,18 @@ export default function VillageCanvas({
 
           {/* 이소메트릭 건물들 */}
           {/* 정령의 집 */}
-          <div className="absolute bottom-20 left-[15%] transform -translate-x-1/2">
+          <motion.div
+            className="absolute bottom-20 left-[15%] transform -translate-x-1/2 cursor-pointer z-10"
+            onClick={() => setSelectedBuilding({
+              id: 'house',
+              name: '정령의 집',
+              type: 'house',
+              icon: '🏠',
+              position: { x: 15, y: 70 }
+            })}
+            whileHover={{ scale: 1.1, y: -5 }}
+            whileTap={{ scale: 0.95 }}
+          >
             <div className="relative">
               <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg shadow-lg"
                 style={{
@@ -300,10 +315,21 @@ export default function VillageCanvas({
                 }}
               />
             </div>
-          </div>
+          </motion.div>
 
           {/* 수련장 */}
-          <div className="absolute bottom-24 right-[20%] transform translate-x-1/2">
+          <motion.div
+            className="absolute bottom-24 right-[20%] transform translate-x-1/2 cursor-pointer z-10"
+            onClick={() => setSelectedBuilding({
+              id: 'training-ground',
+              name: '수련장',
+              type: 'training-ground',
+              icon: '⚔️',
+              position: { x: 80, y: 60 }
+            })}
+            whileHover={{ scale: 1.1, y: -5 }}
+            whileTap={{ scale: 0.95 }}
+          >
             <div className="relative">
               <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-400 rounded-lg shadow-lg"
                 style={{
@@ -320,10 +346,21 @@ export default function VillageCanvas({
                 }}
               />
             </div>
-          </div>
+          </motion.div>
 
           {/* 상점 */}
-          <div className="absolute bottom-16 left-[40%] transform -translate-x-1/2">
+          <motion.div
+            className="absolute bottom-16 left-[40%] transform -translate-x-1/2 cursor-pointer z-10"
+            onClick={() => setSelectedBuilding({
+              id: 'shop',
+              name: '상점',
+              type: 'shop',
+              icon: '🛒',
+              position: { x: 40, y: 70 }
+            })}
+            whileHover={{ scale: 1.1, y: -5 }}
+            whileTap={{ scale: 0.95 }}
+          >
             <div className="relative">
               <div className="w-18 h-18 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-lg shadow-lg"
                 style={{
@@ -340,7 +377,7 @@ export default function VillageCanvas({
                 }}
               />
             </div>
-          </div>
+          </motion.div>
 
           {/* 나무들 */}
           <motion.div
@@ -453,6 +490,17 @@ export default function VillageCanvas({
           )
         })}
       </div>
+
+      {/* 건물 상호작용 패널 */}
+      <AnimatePresence>
+        {selectedBuilding && (
+          <BuildingInteractionPanel
+            building={selectedBuilding as any}
+            onClose={() => setSelectedBuilding(null)}
+            onNavigate={onNavigate}
+          />
+        )}
+      </AnimatePresence>
 
       {/* 정령 상태창 모달 */}
       <AnimatePresence>

@@ -24,6 +24,7 @@ import EventList from '../components/EventList'
 import FeatureModal from '../components/FeatureModal'
 import VillageCanvas from '../components/VillageCanvas'
 import TaskAssignmentPanel from '../components/TaskAssignmentPanel'
+import { locations } from '../config/locations'
 
 export default function MainGamePage() {
   const { user, logout, fetchCurrentUser } = useAuthStore()
@@ -172,6 +173,7 @@ export default function MainGamePage() {
                     <VillageCanvas
                       spiritlings={spiritlings}
                       onSpiritlingClick={setHomeSelectedSpiritling}
+                      onNavigate={handleNavigateFromBuilding}
                       autoMove={true}
                       readonly={false}
                     />

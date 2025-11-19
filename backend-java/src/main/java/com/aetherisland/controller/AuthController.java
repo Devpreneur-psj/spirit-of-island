@@ -2,6 +2,7 @@ package com.aetherisland.controller;
 
 import com.aetherisland.dto.*;
 import com.aetherisland.service.AuthService;
+import com.aetherisland.service.SpiritlingSimulationService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,9 +13,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/auth")
 public class AuthController {
     private final AuthService authService;
+    private final SpiritlingSimulationService simulationService;
     
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, SpiritlingSimulationService simulationService) {
         this.authService = authService;
+        this.simulationService = simulationService;
     }
     
     @PostMapping("/register")
@@ -36,6 +39,8 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser(Authentication authentication) {
         String userId = authentication.getName();
+        // 로그인 시 오프라인 동안의 정령 시뮬레이션 실행
+        simulationService.simulateUserSpiritlings(userId);
         UserResponse response = authService.getCurrentUser(userId);
         return ResponseEntity.ok(response);
     }

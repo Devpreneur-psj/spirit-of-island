@@ -3,6 +3,7 @@ package com.aetherisland.controller;
 import com.aetherisland.dto.SpiritlingCreateRequest;
 import com.aetherisland.dto.SpiritlingResponse;
 import com.aetherisland.service.SpiritlingService;
+import com.aetherisland.service.SpiritlingSimulationService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +17,11 @@ import java.util.Map;
 @RequestMapping("/api/v1/spiritlings")
 public class SpiritlingController {
     private final SpiritlingService spiritlingService;
+    private final SpiritlingSimulationService simulationService;
     
-    public SpiritlingController(SpiritlingService spiritlingService) {
+    public SpiritlingController(SpiritlingService spiritlingService, SpiritlingSimulationService simulationService) {
         this.spiritlingService = spiritlingService;
+        this.simulationService = simulationService;
     }
     
     @PostMapping
@@ -34,6 +37,8 @@ public class SpiritlingController {
     @GetMapping
     public ResponseEntity<List<SpiritlingResponse>> getSpiritlings(Authentication authentication) {
         String userId = authentication.getName();
+        // 정령 목록 조회 전 오프라인 동안의 시뮬레이션 실행
+        simulationService.simulateUserSpiritlings(userId);
         List<SpiritlingResponse> spiritlings = spiritlingService.getSpiritlingsByUserId(userId);
         return ResponseEntity.ok(spiritlings);
     }
