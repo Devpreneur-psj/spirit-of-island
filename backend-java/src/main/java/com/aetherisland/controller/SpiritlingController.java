@@ -46,5 +46,56 @@ public class SpiritlingController {
         SpiritlingResponse response = spiritlingService.getSpiritlingById(id, userId);
         return ResponseEntity.ok(response);
     }
+    
+    @PostMapping("/{id}/feed")
+    public ResponseEntity<SpiritlingResponse> feedSpiritling(
+        @PathVariable String id,
+        Authentication authentication
+    ) {
+        String userId = authentication.getName();
+        SpiritlingResponse response = spiritlingService.feedSpiritling(id, userId);
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/{id}/play")
+    public ResponseEntity<SpiritlingResponse> playWithSpiritling(
+        @PathVariable String id,
+        Authentication authentication
+    ) {
+        String userId = authentication.getName();
+        SpiritlingResponse response = spiritlingService.playWithSpiritling(id, userId);
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/{id}/heal")
+    public ResponseEntity<SpiritlingResponse> healSpiritling(
+        @PathVariable String id,
+        Authentication authentication
+    ) {
+        String userId = authentication.getName();
+        SpiritlingResponse response = spiritlingService.healSpiritling(id, userId);
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/{id}/clean")
+    public ResponseEntity<SpiritlingResponse> cleanSpiritling(
+        @PathVariable String id,
+        Authentication authentication
+    ) {
+        String userId = authentication.getName();
+        SpiritlingResponse response = spiritlingService.cleanSpiritling(id, userId);
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/{id}/train")
+    public ResponseEntity<SpiritlingResponse> trainSpiritling(
+        @PathVariable String id,
+        @RequestParam String stat_type,
+        Authentication authentication
+    ) {
+        String userId = authentication.getName();
+        SpiritlingResponse response = spiritlingService.trainSpiritling(id, userId, stat_type);
+        return ResponseEntity.ok(response);
+    }
 }
 

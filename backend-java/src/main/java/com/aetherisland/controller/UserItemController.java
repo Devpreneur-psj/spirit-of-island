@@ -35,5 +35,21 @@ public class UserItemController {
         Map<String, Object> response = userItemService.buyItem(userId, itemId, quantity);
         return ResponseEntity.ok(response);
     }
+    
+    @PostMapping("/{itemId}/use")
+    public ResponseEntity<Map<String, Object>> useItem(
+        @PathVariable String itemId,
+        @RequestBody Map<String, Object> request,
+        Authentication authentication
+    ) {
+        String userId = authentication.getName();
+        String spiritlingId = (String) request.get("spiritling_id");
+        Integer quantity = request.get("quantity") != null ? 
+            (request.get("quantity") instanceof Integer ? (Integer) request.get("quantity") : 
+             Integer.parseInt(request.get("quantity").toString())) : 1;
+        
+        Map<String, Object> response = userItemService.useItem(userId, itemId, spiritlingId, quantity);
+        return ResponseEntity.ok(response);
+    }
 }
 
