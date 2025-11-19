@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { locations, Location, getUnlockedLocations } from '../config/locations'
+import { useSpiritlingStore } from '../stores/spiritlingStore'
+import { Spiritling, toDisplayFormat } from '../types'
 
 interface WorldMapViewProps {
   onLocationClick: (location: Location) => void
@@ -9,7 +11,9 @@ interface WorldMapViewProps {
 
 export default function WorldMapView({ onLocationClick, currentTab }: WorldMapViewProps) {
   const [hoveredLocation, setHoveredLocation] = useState<string | null>(null)
+  const { selectedSpiritling } = useSpiritlingStore()
   const unlockedLocations = getUnlockedLocations()
+  const isElementHome = currentTab === 'spiritling'
 
   const handleLocationClick = useCallback((location: Location) => {
     if (location.unlocked !== false && location.tab) {
@@ -188,6 +192,11 @@ export default function WorldMapView({ onLocationClick, currentTab }: WorldMapVi
         )
       })}
 
+      {/* 원소 홈에서 정령 표시 */}
+      {isElementHome && selectedSpiritling && (
+        <SpiritlingDisplay spiritling={selectedSpiritling} />
+      )}
+
       {/* 연결선 (장소들 간의 경로) */}
       <svg className="absolute inset-0 pointer-events-none opacity-20" style={{ zIndex: 1 }}>
         {unlockedLocations.map((location, index) => {
@@ -227,6 +236,146 @@ export default function WorldMapView({ onLocationClick, currentTab }: WorldMapVi
         </motion.div>
       </div>
     </div>
+  )
+}
+
+// 정령 표시 컴포넌트
+function SpiritlingDisplay({ spiritling }: { spiritling: Spiritling }) {
+  const display = toDisplayFormat(spiritling)
+  
+  const getElementEmoji = (element: string) => {
+    const emojis: Record<string, string> = {
+      fire: '🔥',
+      water: '💧',
+      earth: '🌍',
+      air: '💨',
+      light: '✨',
+      dark: '🌙',
+    }
+    return emojis[element] || '🦄'
+  }
+
+  const getElementGlow = (element: string) => {
+    const glows: Record<string, string> = {
+      fire: 'shadow-[0_0_30px_rgba(239,68,68,0.6)]',
+      water: 'shadow-[0_0_30px_rgba(59,130,246,0.6)]',
+      earth: 'shadow-[0_0_30px_rgba(234,179,8,0.6)]',
+      air: 'shadow-[0_0_30px_rgba(34,197,94,0.6)]',
+      light: 'shadow-[0_0_30px_rgba(250,204,21,0.6)]',
+      dark: 'shadow-[0_0_30px_rgba(107,114,128,0.6)]',
+    }
+    return glows[element] || 'shadow-[0_0_30px_rgba(139,92,246,0.6)]'
+  }
+
+  // 원소 홈 위치 (20%, 30%)
+  return (
+    <motion.div
+      className="absolute"
+      style={{
+        left: '20%',
+        top: '30%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 15,
+      }}
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{ 
+        opacity: 1, 
+        scale: 1,
+        y: [0, -15, 0],
+        rotate: [0, 3, 0, -3, 0],
+      }}
+      transition={{
+        opacity: { duration: 0.5 },
+        scale: { duration: 0.5 },
+        y: {
+          duration: 3,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        },
+        rotate: {
+          duration: 4,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        },
+      }}
+    >
+      {/* 빛나는 효과 */}
+      <motion.div
+        className={`absolute inset-0 bg-gradient-to-br from-pastel-purple to-pastel-pink rounded-full blur-2xl opacity-50`}
+        animate={{
+          scale: [1, 1.3, 1],
+          opacity: [0.3, 0.6, 0.3],
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      />
+      
+      {/* 정령 스프라이트 */}
+      <motion.div
+        className={`relative w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-pastel-purple to-pastel-pink rounded-full ${getElementGlow(display.element)} flex items-center justify-center text-5xl sm:text-6xl border-4 border-white/70 shadow-2xl`}
+        whileHover={{ scale: 1.15 }}
+        animate={{
+          boxShadow: [
+            '0 0 30px rgba(139, 92, 246, 0.4)',
+            '0 0 50px rgba(139, 92, 246, 0.6)',
+            '0 0 30px rgba(139, 92, 246, 0.4)',
+          ],
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      >
+        <motion.span
+          animate={{
+            rotate: [0, 10, -10, 0],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        >
+          {getElementEmoji(display.element)}
+        </motion.span>
+        
+        {/* 레벨 표시 */}
+        <div className="absolute -top-2 -right-2 bg-pastel-purple text-white text-sm font-bold rounded-full w-8 h-8 flex items-center justify-center border-2 border-white shadow-lg">
+          {display.level}
+        </div>
+      </motion.div>
+      
+      {/* 이름 태그 */}
+      <motion.div
+        className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-black/80 to-black/60 text-white px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap shadow-xl backdrop-blur-sm border border-white/30"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        {display.name}
+      </motion.div>
+      
+      {/* 성장 단계 표시 */}
+      {display.growthStage !== 'egg' && (
+        <motion.div
+          className="absolute -top-10 left-1/2 transform -translate-x-1/2 text-xs text-gray-700 font-medium bg-white/90 px-3 py-1 rounded-full shadow-lg"
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          {display.growthStage === 'infant' && '👶 유아'}
+          {display.growthStage === 'adolescent' && '🧒 청소년'}
+          {display.growthStage === 'adult' && '👤 성체'}
+          {display.growthStage === 'transcendent' && '✨ 초월체'}
+          {display.growthStage === 'elder' && '👴 노년'}
+        </motion.div>
+      )}
+    </motion.div>
   )
 }
 
