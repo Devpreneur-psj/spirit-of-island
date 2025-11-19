@@ -22,6 +22,7 @@ import RankingList from '../components/RankingList'
 import AchievementList from '../components/AchievementList'
 import EventList from '../components/EventList'
 import FeatureModal from '../components/FeatureModal'
+import VillageCanvas from '../components/VillageCanvas'
 
 export default function MainGamePage() {
   const { user, logout, fetchCurrentUser } = useAuthStore()
@@ -153,21 +154,46 @@ export default function MainGamePage() {
               isOpen={openModal.type === 'element-home'}
               onClose={closeModal}
               title="원소 홈"
-              description="마정령들이 휴식하는 곳"
+              description="마정령들이 놀고 있는 곳"
               icon="🏠"
               color="from-purple-500 to-pink-600"
             >
               <Suspense fallback={<TabLoadingFallback />}>
-                {selectedSpiritling ? (
-                  <>
-                    <SpiritlingProfile spiritling={selectedSpiritling} />
-                    <ActionPanel spiritling={selectedSpiritling} />
-                    <ActionLog spiritlingId={selectedSpiritling.id} />
-                  </>
-                ) : (
+                {spiritlings.length === 0 ? (
                   <div className="card">
-                    <h3 className="text-xl font-bold mb-4">마정령 목록</h3>
-                    <SpiritlingList spiritlings={spiritlings} />
+                    <div className="text-center py-12">
+                      <p className="text-gray-500 mb-4">마정령이 없습니다.</p>
+                      <p className="text-sm text-gray-400">마정령을 생성하면 원소 홈에 나타납니다.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <VillageCanvas
+                      spiritlings={spiritlings}
+                      onSpiritlingClick={setHomeSelectedSpiritling}
+                      autoMove={true}
+                      readonly={false}
+                    />
+                    {homeSelectedSpiritling && (
+                      <div className="card">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-xl font-bold">마정령 정보</h3>
+                          <button
+                            onClick={() => setHomeSelectedSpiritling(null)}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <SpiritlingProfile spiritling={homeSelectedSpiritling} />
+                        <div className="mt-4">
+                          <ActionPanel spiritling={homeSelectedSpiritling} />
+                        </div>
+                        <div className="mt-4">
+                          <ActionLog spiritlingId={homeSelectedSpiritling.id} />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </Suspense>

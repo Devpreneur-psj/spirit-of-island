@@ -12,35 +12,124 @@ interface SpiritlingPosition {
 interface VillageCanvasProps {
   spiritlings: Spiritling[]
   onSpiritlingClick?: (spiritling: Spiritling) => void
+  readonly?: boolean // 읽기 전용 모드 (드래그 불가)
+  autoMove?: boolean // 자동 이동 활성화
 }
 
-export default function VillageCanvas({ spiritlings, onSpiritlingClick }: VillageCanvasProps) {
+export default function VillageCanvas({ 
+  spiritlings, 
+  onSpiritlingClick,
+  readonly = false,
+  autoMove = true
+}: VillageCanvasProps) {
   const [positions, setPositions] = useState<Map<string, SpiritlingPosition>>(new Map())
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [selectedSpiritling, setSelectedSpiritling] = useState<Spiritling | null>(null)
+  const [movementTargets, setMovementTargets] = useState<Map<string, { x: number; y: number }>>(new Map())
   const canvasRef = useRef<HTMLDivElement>(null)
+  const animationFrameRef = useRef<number>()
 
   // 초기 위치 설정
   useEffect(() => {
     const initialPositions = new Map<string, SpiritlingPosition>()
+    const initialTargets = new Map<string, { x: number; y: number }>()
+    
     spiritlings.forEach((spiritling, index) => {
       if (!positions.has(spiritling.id)) {
+        const x = 20 + (index % 3) * 30
+        const y = 30 + Math.floor(index / 3) * 25
         initialPositions.set(spiritling.id, {
           spiritlingId: spiritling.id,
-          x: 20 + (index % 3) * 30,
-          y: 30 + Math.floor(index / 3) * 25,
+          x,
+          y,
         })
+        if (autoMove) {
+          initialTargets.set(spiritling.id, { x, y })
+        }
       } else {
         initialPositions.set(spiritling.id, positions.get(spiritling.id)!)
+        if (autoMove && movementTargets.has(spiritling.id)) {
+          initialTargets.set(spiritling.id, movementTargets.get(spiritling.id)!)
+        }
       }
     })
     setPositions(initialPositions)
+    if (autoMove) {
+      setMovementTargets(initialTargets)
+    }
   }, [spiritlings])
 
+  // 자동 이동 로직
+  useEffect(() => {
+    if (!autoMove || readonly) return
+
+    const moveSpiritlings = () => {
+      setPositions(prev => {
+        const newPositions = new Map(prev)
+        setMovementTargets(prevTargets => {
+          const newTargets = new Map(prevTargets)
+          
+          spiritlings.forEach(spiritling => {
+            const current = newPositions.get(spiritling.id)
+            if (!current) return
+            
+            let target = newTargets.get(spiritling.id)
+            
+            // 목표 지점에 도달했거나 목표가 없으면 새로운 목표 설정
+            if (!target || 
+                (Math.abs(current.x - target.x) < 1 && Math.abs(current.y - target.y) < 1) ||
+                Math.random() < 0.01) {
+              // 랜덤한 새 위치 생성 (캔버스 내)
+              target = {
+                x: 15 + Math.random() * 70,
+                y: 20 + Math.random() * 60,
+              }
+              newTargets.set(spiritling.id, target)
+            }
+            
+            // 목표 지점으로 부드럽게 이동
+            const speed = 0.3 + Math.random() * 0.2 // 각 정령마다 다른 속도
+            const dx = target.x - current.x
+            const dy = target.y - current.y
+            const distance = Math.sqrt(dx * dx + dy * dy)
+            
+            if (distance > 0.5) {
+              newPositions.set(spiritling.id, {
+                ...current,
+                x: current.x + (dx / distance) * speed,
+                y: current.y + (dy / distance) * speed,
+              })
+            }
+          })
+          
+          return newTargets
+        })
+        return newPositions
+      })
+      
+      animationFrameRef.current = requestAnimationFrame(moveSpiritlings)
+    }
+    
+    animationFrameRef.current = requestAnimationFrame(moveSpiritlings)
+    
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+    }
+  }, [autoMove, readonly, spiritlings])
+
   const handleMouseDown = useCallback((e: React.MouseEvent, spiritlingId: string) => {
+    if (readonly) return
     e.preventDefault()
     setDraggingId(spiritlingId)
-  }, [])
+    // 드래그 시작 시 자동 이동 목표 제거
+    setMovementTargets(prev => {
+      const newTargets = new Map(prev)
+      newTargets.delete(spiritlingId)
+      return newTargets
+    })
+  }, [readonly])
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!draggingId || !canvasRef.current) return
@@ -64,8 +153,19 @@ export default function VillageCanvas({ spiritlings, onSpiritlingClick }: Villag
   }, [draggingId])
 
   const handleMouseUp = useCallback(() => {
+    if (draggingId && autoMove) {
+      // 드래그 종료 시 현재 위치를 목표로 설정
+      const current = positions.get(draggingId)
+      if (current) {
+        setMovementTargets(prev => {
+          const newTargets = new Map(prev)
+          newTargets.set(draggingId, { x: current.x, y: current.y })
+          return newTargets
+        })
+      }
+    }
     setDraggingId(null)
-  }, [])
+  }, [draggingId, autoMove, positions])
 
   const getSpiritlingEmoji = (spiritling: Spiritling) => {
     const elementEmojis: Record<string, string> = {
@@ -124,6 +224,15 @@ export default function VillageCanvas({ spiritlings, onSpiritlingClick }: Villag
           {/* 하늘 */}
           <div className="absolute top-0 left-0 w-full h-1/3 bg-gradient-to-b from-blue-200 to-transparent opacity-50"></div>
           
+          {/* 태양 */}
+          <motion.div
+            className="absolute top-5 right-10 text-4xl"
+            animate={{ rotate: [0, 360] }}
+            transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+          >
+            ☀️
+          </motion.div>
+          
           {/* 구름 */}
           <motion.div
             className="absolute top-10 left-10 text-4xl opacity-30"
@@ -147,6 +256,22 @@ export default function VillageCanvas({ spiritlings, onSpiritlingClick }: Villag
           {/* 집 */}
           <div className="absolute bottom-10 left-1/4 text-5xl opacity-50">🏠</div>
           <div className="absolute bottom-10 right-1/4 text-4xl opacity-40">🏡</div>
+          
+          {/* 꽃 */}
+          <motion.div
+            className="absolute bottom-5 left-1/3 text-2xl opacity-60"
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            🌸
+          </motion.div>
+          <motion.div
+            className="absolute bottom-8 right-1/3 text-xl opacity-50"
+            animate={{ rotate: [0, -8, 8, 0] }}
+            transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            🌺
+          </motion.div>
         </div>
 
         {/* 정령들 */}
@@ -162,7 +287,7 @@ export default function VillageCanvas({ spiritlings, onSpiritlingClick }: Villag
           return (
             <motion.div
               key={spiritling.id}
-              className="absolute cursor-move select-none"
+              className={`absolute select-none ${readonly ? 'cursor-pointer' : 'cursor-move'}`}
               style={{
                 left: `${position.x}%`,
                 top: `${position.y}%`,
@@ -170,11 +295,15 @@ export default function VillageCanvas({ spiritlings, onSpiritlingClick }: Villag
               }}
               animate={{
                 scale: isDragging ? 1.2 : 1,
-                y: isDragging ? 0 : [0, -5, 0],
+                y: isDragging ? 0 : autoMove ? 0 : [0, -5, 0],
+                rotate: autoMove && !isDragging ? [0, 5, -5, 0] : 0,
               }}
               transition={{
-                y: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
+                y: autoMove ? undefined : { duration: 2, repeat: Infinity, ease: 'easeInOut' },
+                rotate: autoMove ? { duration: 3, repeat: Infinity, ease: 'easeInOut' } : undefined,
                 scale: { duration: 0.2 },
+                left: autoMove && !isDragging ? { type: 'tween', duration: 0.1, ease: 'linear' } : undefined,
+                top: autoMove && !isDragging ? { type: 'tween', duration: 0.1, ease: 'linear' } : undefined,
               }}
               onMouseDown={(e) => handleMouseDown(e, spiritling.id)}
               onClick={() => handleSpiritlingClick(spiritling)}
