@@ -16,6 +16,7 @@ interface SpiritlingState {
   healSpiritling: (id: string) => Promise<void>
   cleanSpiritling: (id: string) => Promise<void>
   trainSpiritling: (id: string, statType: string) => Promise<void>
+  assignTask: (id: string, task: string) => Promise<Spiritling>
   setSelectedSpiritling: (spiritling: Spiritling | null) => void
   setPreviousLevel: (level: number | null) => void
 }
@@ -186,6 +187,25 @@ export const useSpiritlingStore = create<SpiritlingState>((set, get) => ({
       })
     } catch (error) {
       console.error('Failed to train spiritling:', error)
+      throw error
+    }
+  },
+
+  assignTask: async (id: string, task: string) => {
+    try {
+      const updatedSpiritling = await spiritlingService.assignTask(id, task)
+      set((state) => ({
+        spiritlings: state.spiritlings.map((s) =>
+          s.id === id ? updatedSpiritling : s
+        ),
+        selectedSpiritling:
+          state.selectedSpiritling?.id === id
+            ? updatedSpiritling
+            : state.selectedSpiritling,
+      }))
+      return updatedSpiritling
+    } catch (error) {
+      console.error('Failed to assign task:', error)
       throw error
     }
   },

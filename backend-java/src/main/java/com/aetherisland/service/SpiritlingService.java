@@ -186,6 +186,35 @@ public class SpiritlingService {
         spiritlingRepository.save(spiritling);
         return toResponse(spiritling);
     }
+
+    @Transactional
+    public SpiritlingResponse assignTask(String id, String userId, String task) {
+        Spiritling spiritling = getSpiritlingByIdAndUser(id, userId);
+        
+        // 유효한 작업인지 확인
+        List<String> validTasks = List.of("idle", "training", "resting", "farming", "exploring", "playing");
+        if (!validTasks.contains(task)) {
+            throw new RuntimeException("유효하지 않은 작업입니다: " + task);
+        }
+        
+        spiritling.setCurrentAction(task);
+        spiritlingRepository.save(spiritling);
+        
+        String taskName = switch (task) {
+            case "idle" -> "자유 행동";
+            case "training" -> "훈련";
+            case "resting" -> "휴식";
+            case "farming" -> "농장일";
+            case "exploring" -> "탐험";
+            case "playing" -> "놀기";
+            default -> task;
+        };
+        
+        createActionLog(spiritling.getId(), "assign_task", 
+            spiritling.getName() + "에게 '" + taskName + "' 작업을 지정했습니다.");
+        
+        return toResponse(spiritling);
+    }
     
     private Spiritling getSpiritlingByIdAndUser(String id, String userId) {
         Spiritling spiritling = spiritlingRepository.findById(id)
