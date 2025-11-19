@@ -40,5 +40,10 @@ export const friendService = {
     const response = await api.get<SearchedUser[]>(`/friends/search?username=${encodeURIComponent(username)}`)
     return response.data
   },
+
+  async getRecommendedFriends(limit: number = 5): Promise<SearchedUser[]> {
+    const response = await api.get<SearchedUser[]>(`/friends/recommendations?limit=${limit}`)
+    return response.data
+  },
 }
 

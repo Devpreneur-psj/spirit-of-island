@@ -10,7 +10,8 @@ export default function FriendList() {
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<SearchedUser[]>([])
-  const [activeTab, setActiveTab] = useState<'friends' | 'requests' | 'search'>('friends')
+  const [recommendedFriends, setRecommendedFriends] = useState<SearchedUser[]>([])
+  const [activeTab, setActiveTab] = useState<'friends' | 'requests' | 'search' | 'recommendations'>('friends')
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
@@ -18,6 +19,8 @@ export default function FriendList() {
       fetchFriends()
     } else if (activeTab === 'requests') {
       fetchFriendRequests()
+    } else if (activeTab === 'recommendations') {
+      fetchRecommendedFriends()
     }
   }, [activeTab])
 
@@ -45,6 +48,18 @@ export default function FriendList() {
     }
   }
 
+  const fetchRecommendedFriends = async () => {
+    try {
+      setIsLoading(true)
+      const data = await friendService.getRecommendedFriends(10)
+      setRecommendedFriends(data)
+    } catch (error) {
+      console.error('Failed to fetch recommended friends:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       setSearchResults([])
@@ -67,7 +82,11 @@ export default function FriendList() {
     try {
       await friendService.sendFriendRequest(friendId)
       alert('친구 요청을 보냈습니다!')
-      handleSearch()
+      if (activeTab === 'search') {
+        handleSearch()
+      } else if (activeTab === 'recommendations') {
+        fetchRecommendedFriends()
+      }
     } catch (error: any) {
       alert(error.response?.data?.detail || '친구 요청에 실패했습니다.')
     }
@@ -146,6 +165,16 @@ export default function FriendList() {
           }`}
         >
           친구 찾기
+        </button>
+        <button
+          onClick={() => setActiveTab('recommendations')}
+          className={`px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap min-w-fit ${
+            activeTab === 'recommendations'
+              ? 'text-pastel-purple border-b-2 border-pastel-purple'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          추천 친구
         </button>
       </div>
 
@@ -284,6 +313,65 @@ export default function FriendList() {
                 >
                   <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 bg-pastel-purple rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 text-sm sm:text-base">
+                      {user.username.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-sm sm:text-base truncate">{user.username}</p>
+                      <p className="text-xs sm:text-sm text-gray-500 truncate">{user.email}</p>
+                    </div>
+                  </div>
+                  <div className="w-full sm:w-auto">
+                    {user.is_friend ? (
+                      <span className="text-xs sm:text-sm text-gray-500">이미 친구입니다</span>
+                    ) : user.friend_status === 'pending' ? (
+                      <span className="text-xs sm:text-sm text-gray-500">요청됨</span>
+                    ) : (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleSendRequest(user.id)}
+                        className="btn-primary text-xs sm:text-sm py-2 px-3 sm:px-4 w-full sm:w-auto"
+                      >
+                        친구 추가
+                      </motion.button>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 추천 친구 */}
+      {activeTab === 'recommendations' && (
+        <div className="card">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg sm:text-xl font-bold">추천 친구</h3>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={fetchRecommendedFriends}
+              className="text-xs sm:text-sm text-pastel-purple hover:text-pastel-purple-dark font-medium"
+            >
+              🔄 새로고침
+            </motion.button>
+          </div>
+          {isLoading ? (
+            <p className="text-gray-500 text-center py-4 text-sm">로딩 중...</p>
+          ) : recommendedFriends.length === 0 ? (
+            <p className="text-gray-500 text-center py-4 text-sm">추천할 친구가 없습니다.</p>
+          ) : (
+            <div className="space-y-2 sm:space-y-3">
+              {recommendedFriends.map((user) => (
+                <motion.div
+                  key={user.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 sm:p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-pastel-purple to-pastel-blue rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 text-sm sm:text-base">
                       {user.username.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1">

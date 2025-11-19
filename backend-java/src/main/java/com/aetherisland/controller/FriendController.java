@@ -218,6 +218,54 @@ public class FriendController {
         return ResponseEntity.ok(result);
     }
     
+    @GetMapping("/recommendations")
+    public ResponseEntity<List<Map<String, Object>>> getRecommendedFriends(
+        @RequestParam(defaultValue = "5") Integer limit,
+        Authentication authentication
+    ) {
+        String userId = authentication.getName();
+        
+        // 현재 사용자의 친구 ID 목록 (양방향)
+        Set<String> friendIds = new HashSet<>();
+        friendRepository.findAll().forEach(f -> {
+            if (f.getUserId().equals(userId)) friendIds.add(f.getFriendId());
+            if (f.getFriendId().equals(userId)) friendIds.add(f.getUserId());
+        });
+        friendIds.add(userId); // 자기 자신도 제외
+        
+        // 모든 사용자 중에서 친구가 아닌 사용자들 가져오기
+        List<User> allUsers = userRepository.findAll();
+        List<User> recommendedUsers = allUsers.stream()
+            .filter(u -> !friendIds.contains(u.getId()))
+            .collect(Collectors.toList());
+        
+        // 랜덤하게 섞기
+        Collections.shuffle(recommendedUsers);
+        
+        // 제한된 수만큼 추천
+        List<User> selectedUsers = recommendedUsers.stream()
+            .limit(Math.min(limit, recommendedUsers.size()))
+            .collect(Collectors.toList());
+        
+        // 응답 생성
+        List<Map<String, Object>> result = selectedUsers.stream()
+            .map(user -> {
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", user.getId());
+                item.put("username", user.getUsername());
+                item.put("email", user.getEmail());
+                item.put("is_friend", false);
+                
+                Optional<Friend> friendRequest = friendRepository.findFriendRelationship(userId, user.getId());
+                item.put("friend_status", friendRequest.map(Friend::getStatus).orElse(null));
+                
+                return item;
+            })
+            .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(result);
+    }
+    
     private FriendResponse toResponse(Friend friend, User friendUser) {
         return new FriendResponse(
             friend.getId(),
