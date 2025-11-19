@@ -176,7 +176,7 @@ export default function VillageView() {
             </div>
           )}
         </div>
-      ) : (
+      ) : viewMode === 'friend-visit' && selectedFriend ? (
         <div className="space-y-6">
           {/* 친구 프로필 헤더 */}
           <div className="card">
@@ -209,68 +209,37 @@ export default function VillageView() {
             </div>
           </div>
 
-          {/* 마정령 목록 또는 선택된 마정령 */}
-          {selectedSpiritling ? (
-            <div className="space-y-6">
-              <motion.button
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setSelectedSpiritling(null)}
-                className="btn-secondary text-xs sm:text-sm py-2 px-3 sm:px-6"
-              >
-                ← 마정령 목록으로
-              </motion.button>
-              <SpiritlingProfile spiritling={selectedSpiritling} />
+          {/* 친구 마을 캔버스 (읽기 전용) */}
+          {friendSpiritlings.length === 0 ? (
+            <div className="card">
+              <p className="text-gray-500 text-center py-12">마정령이 없습니다.</p>
             </div>
           ) : (
             <div className="card">
-              <h3 className="text-xl font-bold mb-4">마정령 목록</h3>
-              {isLoading ? (
-                <p className="text-gray-500 text-center py-4">로딩 중...</p>
-              ) : friendSpiritlings.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">마정령이 없습니다.</p>
-              ) : (
-                <div className="space-y-2">
-                  {friendSpiritlings.map((spiritling) => (
-                    <motion.button
-                      key={spiritling.id}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => handleSpiritlingSelect(spiritling)}
-                      className={`w-full card text-left transition-all ${
-                        selectedSpiritling?.id === spiritling.id
-                          ? 'ring-2 ring-pastel-purple bg-pastel-purple/10'
-                          : ''
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-bold">{spiritling.name}</h4>
-                          <p className="text-sm text-gray-600">
-                            {spiritling.element} · 레벨 {spiritling.level}
-                          </p>
-                        </div>
-                        <div className="text-2xl">
-                          {spiritling.element === 'fire' && '🔥'}
-                          {spiritling.element === 'water' && '💧'}
-                          {spiritling.element === 'wind' && '🌪️'}
-                          {spiritling.element === 'earth' && '🌍'}
-                          {spiritling.element === 'plant' && '🌱'}
-                          {spiritling.element === 'electric' && '⚡'}
-                          {spiritling.element === 'light' && '✨'}
-                          {spiritling.element === 'dark' && '🌙'}
-                        </div>
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
-              )}
+              <VillageCanvas
+                spiritlings={friendSpiritlings}
+                onSpiritlingClick={setSelectedSpiritling}
+              />
+            </div>
+          )}
+
+          {/* 선택된 마정령 상세 정보 */}
+          {selectedSpiritling && (
+            <div className="card">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold">마정령 정보</h3>
+                <button
+                  onClick={() => setSelectedSpiritling(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+              <SpiritlingProfile spiritling={selectedSpiritling} />
             </div>
           )}
         </div>
-      )}
+      ) : null}
     </div>
   )
 }
