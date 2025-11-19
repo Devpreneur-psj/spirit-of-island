@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Spiritling } from '../types'
 import { useSpiritlingStore } from '../stores/spiritlingStore'
 
@@ -9,7 +10,11 @@ interface SpiritlingListProps {
 }
 
 export default function SpiritlingList({ spiritlings, onSpiritlingSelect, readOnly = false }: SpiritlingListProps) {
-  const { setSelectedSpiritling, selectedSpiritling } = useSpiritlingStore()
+  const { setSelectedSpiritling, selectedSpiritling, createSpiritling, fetchSpiritlings } = useSpiritlingStore()
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [formData, setFormData] = useState({ name: '', element: 'fire', personality: '활발' })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   
   const handleSpiritlingClick = (spiritling: Spiritling) => {
     if (onSpiritlingSelect) {
@@ -19,11 +24,52 @@ export default function SpiritlingList({ spiritlings, onSpiritlingSelect, readOn
     }
   }
 
-  if (spiritlings.length === 0) {
+  const handleCreateClick = () => {
+    setShowCreateForm(true)
+    setError('')
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.name.trim()) {
+      setError('이름을 입력해주세요.')
+      return
+    }
+    
+    setIsLoading(true)
+    setError('')
+    
+    try {
+      await createSpiritling(formData)
+      await fetchSpiritlings()
+      setShowCreateForm(false)
+      setFormData({ name: '', element: 'fire', personality: '활발' })
+    } catch (err: any) {
+      console.error('마정령 생성 실패:', err)
+      setError(err.response?.data?.detail || '마정령 생성에 실패했습니다.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const elements = [
+    { value: 'fire', label: '불', emoji: '🔥' },
+    { value: 'water', label: '물', emoji: '💧' },
+    { value: 'earth', label: '땅', emoji: '🌍' },
+    { value: 'air', label: '바람', emoji: '💨' },
+    { value: 'light', label: '빛', emoji: '✨' },
+    { value: 'dark', label: '어둠', emoji: '🌙' },
+  ]
+
+  const personalities = ['활발', '조용', '장난꾸러기', '차분', '호기심많음', '용감', '부끄러움', '친근함']
+
+  if (spiritlings.length === 0 && !showCreateForm) {
     return (
       <div className="text-center py-8">
         <p className="text-gray-600 mb-4">마정령이 없습니다</p>
-        <button className="btn-primary">새 마정령 만들기</button>
+        <button className="btn-primary" onClick={handleCreateClick}>
+          새 마정령 만들기
+        </button>
       </div>
     )
   }
