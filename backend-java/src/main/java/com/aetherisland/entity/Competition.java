@@ -1,18 +1,12 @@
 package com.aetherisland.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "competitions")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Competition {
     @Id
     private String id;

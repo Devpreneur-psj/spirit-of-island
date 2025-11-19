@@ -1,9 +1,6 @@
 package com.aetherisland.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -11,9 +8,6 @@ import java.time.LocalDateTime;
 @Table(name = "friends", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"user_id", "friend_id"}, name = "unique_friend_relationship")
 })
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Friend {
     @Id
     private String id;

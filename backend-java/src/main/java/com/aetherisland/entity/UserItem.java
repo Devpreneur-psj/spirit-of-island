@@ -1,18 +1,12 @@
 package com.aetherisland.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user_items")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class UserItem {
     @Id
     @GeneratedValue(generator = "uuid")

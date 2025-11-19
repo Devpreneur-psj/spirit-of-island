@@ -1,15 +1,9 @@
 package com.aetherisland.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "competition_entries")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class CompetitionEntry {
     @Id
     private String id;
