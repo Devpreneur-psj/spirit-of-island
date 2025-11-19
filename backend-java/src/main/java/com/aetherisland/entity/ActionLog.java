@@ -19,6 +19,9 @@ public class ActionLog {
     @Column(name = "action_type", nullable = false)
     private String actionType;
     
+    @Column(name = "action", nullable = true)
+    private String action; // 일부 스키마에서 사용하는 필드
+    
     @Column(name = "message", nullable = false, columnDefinition = "TEXT")
     private String message;
     
@@ -40,7 +43,15 @@ public class ActionLog {
     public String getSpiritlingId() { return spiritlingId; }
     public void setSpiritlingId(String spiritlingId) { this.spiritlingId = spiritlingId; }
     public String getActionType() { return actionType; }
-    public void setActionType(String actionType) { this.actionType = actionType; }
+    public void setActionType(String actionType) { 
+        this.actionType = actionType;
+        // action_type과 action을 동기화
+        if (this.action == null) {
+            this.action = actionType;
+        }
+    }
+    public String getAction() { return action; }
+    public void setAction(String action) { this.action = action; }
     public String getMessage() { return message; }
     public void setMessage(String message) { this.message = message; }
     public Spiritling getSpiritling() { return spiritling; }

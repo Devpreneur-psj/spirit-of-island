@@ -54,6 +54,7 @@ public class SpiritlingService {
         log.setId(UUID.randomUUID().toString());
         log.setSpiritlingId(saved.getId());
         log.setActionType("create");
+        log.setAction("create"); // action 필드도 설정
         log.setMessage(saved.getName() + "이(가) 태어났습니다! 🎉");
         actionLogRepository.save(log);
         
