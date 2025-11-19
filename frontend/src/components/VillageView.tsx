@@ -3,6 +3,8 @@ import { motion } from 'framer-motion'
 import { FriendForVillage, Spiritling } from '../types'
 import { villageService } from '../services/villageService'
 import SpiritlingProfile from './SpiritlingProfile'
+import VillageCanvas from './VillageCanvas'
+import { useSpiritlingStore } from '../stores/spiritlingStore'
 
 interface UserProfile {
   id: string
@@ -13,16 +15,19 @@ interface UserProfile {
 }
 
 export default function VillageView() {
+  const { spiritlings, fetchSpiritlings } = useSpiritlingStore()
   const [friends, setFriends] = useState<FriendForVillage[]>([])
   const [selectedFriend, setSelectedFriend] = useState<FriendForVillage | null>(null)
   const [friendSpiritlings, setFriendSpiritlings] = useState<Spiritling[]>([])
   const [friendProfile, setFriendProfile] = useState<UserProfile | null>(null)
   const [selectedSpiritling, setSelectedSpiritling] = useState<Spiritling | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [viewMode, setViewMode] = useState<'my-village' | 'friend-visit'>('my-village')
 
   useEffect(() => {
+    fetchSpiritlings()
     fetchFriends()
-  }, [])
+  }, [fetchSpiritlings])
 
   useEffect(() => {
     if (selectedFriend) {
@@ -85,7 +90,55 @@ export default function VillageView() {
 
   return (
     <div className="space-y-6">
-      {!selectedFriend ? (
+      {/* 뷰 모드 전환 탭 */}
+      <div className="flex gap-2 border-b border-gray-200">
+        <button
+          onClick={() => setViewMode('my-village')}
+          className={`px-4 py-2 font-medium transition-colors ${
+            viewMode === 'my-village'
+              ? 'text-pastel-purple border-b-2 border-pastel-purple'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          내 마을
+        </button>
+        <button
+          onClick={() => setViewMode('friend-visit')}
+          className={`px-4 py-2 font-medium transition-colors ${
+            viewMode === 'friend-visit'
+              ? 'text-pastel-purple border-b-2 border-pastel-purple'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          친구 마을 방문
+        </button>
+      </div>
+
+      {/* 내 마을 뷰 */}
+      {viewMode === 'my-village' && (
+        <div className="space-y-4">
+          <div className="card">
+            <h3 className="text-xl font-bold mb-4">내 마을</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              정령들을 드래그하여 마을에 배치하세요. 정령을 클릭하면 상태를 확인할 수 있습니다.
+            </p>
+            {spiritlings.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500 mb-4">마정령이 없습니다.</p>
+                <p className="text-sm text-gray-400">마정령을 생성하면 마을에 나타납니다.</p>
+              </div>
+            ) : (
+              <VillageCanvas
+                spiritlings={spiritlings}
+                onSpiritlingClick={setSelectedSpiritling}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 친구 마을 방문 뷰 */}
+      {viewMode === 'friend-visit' && !selectedFriend ? (
         <div className="card">
           <h3 className="text-xl font-bold mb-4">마을 방문</h3>
           <p className="text-sm text-gray-600 mb-4">친구의 마정령을 방문하여 구경할 수 있습니다.</p>
