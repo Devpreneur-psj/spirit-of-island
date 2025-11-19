@@ -21,19 +21,24 @@ import {
 import RankingList from '../components/RankingList'
 import AchievementList from '../components/AchievementList'
 import EventList from '../components/EventList'
+import VillageModal from '../components/VillageModal'
 
 export default function MainGamePage() {
   const { user, logout, fetchCurrentUser } = useAuthStore()
   const { spiritlings, fetchSpiritlings, selectedSpiritling, previousLevel } = useSpiritlingStore()
-  const [activeTab, setActiveTab] = useState<'spiritling' | 'shop' | 'inventory' | 'competition' | 'friends' | 'village' | 'ranking' | 'achievements' | 'events'>('spiritling')
+  const [activeTab, setActiveTab] = useState<'spiritling' | 'shop' | 'inventory' | 'competition' | 'friends' | 'ranking' | 'achievements' | 'events'>('spiritling')
+  const [showVillageModal, setShowVillageModal] = useState(false)
 
   // Memoize handlers to prevent unnecessary re-renders
-  const handleTabChange = useCallback((tab: 'spiritling' | 'shop' | 'inventory' | 'competition' | 'friends' | 'village' | 'ranking' | 'achievements' | 'events') => {
+  const handleTabChange = useCallback((tab: 'spiritling' | 'shop' | 'inventory' | 'competition' | 'friends' | 'ranking' | 'achievements' | 'events') => {
     setActiveTab(tab)
   }, [])
 
   const handleLocationClick = useCallback((location: Location) => {
-    if (location.tab) {
+    if (location.id === 'village-square') {
+      // 마을은 별도 모달로 열림
+      setShowVillageModal(true)
+    } else if (location.tab) {
       handleTabChange(location.tab as any)
     }
   }, [handleTabChange])
@@ -50,8 +55,8 @@ export default function MainGamePage() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) return // Ignore Ctrl/Cmd combinations
       
-      const tabs: Array<'spiritling' | 'shop' | 'inventory' | 'competition' | 'friends' | 'village' | 'ranking' | 'achievements' | 'events'> = [
-        'spiritling', 'shop', 'inventory', 'competition', 'friends', 'village', 'ranking', 'achievements', 'events'
+      const tabs: Array<'spiritling' | 'shop' | 'inventory' | 'competition' | 'friends' | 'ranking' | 'achievements' | 'events'> = [
+        'spiritling', 'shop', 'inventory', 'competition', 'friends', 'ranking', 'achievements', 'events'
       ]
       const currentIndex = tabs.indexOf(activeTab)
       
@@ -157,6 +162,11 @@ export default function MainGamePage() {
             />
           </motion.div>
 
+          {/* 마을 모달 */}
+          {showVillageModal && (
+            <VillageModal onClose={() => setShowVillageModal(false)} />
+          )}
+
           {/* Right Column - Profile and Actions */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -246,17 +256,9 @@ export default function MainGamePage() {
                 친구
               </button>
               <button
-                onClick={() => handleTabChange('village')}
-                role="tab"
-                aria-selected={activeTab === 'village'}
-                aria-controls="village-tabpanel"
-                id="village-tab"
-                tabIndex={activeTab === 'village' ? 0 : -1}
-                className={`px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 ${
-                  activeTab === 'village'
-                    ? 'text-pastel-purple border-b-2 border-pastel-purple'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
+                onClick={() => setShowVillageModal(true)}
+                role="button"
+                className="px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 text-gray-600 hover:text-gray-800"
               >
                 마을
               </button>
@@ -355,14 +357,6 @@ export default function MainGamePage() {
               <div role="tabpanel" id="friends-tabpanel" aria-labelledby="friends-tab">
                 <Suspense fallback={<TabLoadingFallback />}>
                   <FriendList />
-                </Suspense>
-              </div>
-            )}
-
-            {activeTab === 'village' && (
-              <div role="tabpanel" id="village-tabpanel" aria-labelledby="village-tab">
-                <Suspense fallback={<TabLoadingFallback />}>
-                  <VillageView />
                 </Suspense>
               </div>
             )}

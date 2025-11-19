@@ -88,7 +88,7 @@ export const locations: Location[] = [
     emoji: '🏛️',
     position: { x: 60, y: 60 },
     color: 'from-indigo-400 to-purple-400',
-    tab: 'village',
+    tab: undefined, // 별도 화면으로 열림
     category: 'social',
     unlocked: true,
   },
