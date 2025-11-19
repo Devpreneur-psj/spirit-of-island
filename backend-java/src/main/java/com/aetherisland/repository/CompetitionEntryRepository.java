@@ -11,11 +11,9 @@ import java.util.Optional;
 
 @Repository
 public interface CompetitionEntryRepository extends JpaRepository<CompetitionEntry, String> {
-    List<CompetitionEntry> findByCompetitionIdOrderByScoreDesc(String competitionId);
+    @Query("SELECT ce FROM CompetitionEntry ce WHERE ce.competitionId = :competitionId ORDER BY ce.score DESC")
+    List<CompetitionEntry> findByCompetitionIdOrderByScoreDesc(@Param("competitionId") String competitionId);
     
     Optional<CompetitionEntry> findByCompetitionIdAndSpiritlingId(String competitionId, String spiritlingId);
-    
-    @Query("SELECT ce FROM CompetitionEntry ce WHERE ce.competitionId = :competitionId ORDER BY ce.score DESC")
-    List<CompetitionEntry> findTop10ByCompetitionIdOrderByScoreDesc(@Param("competitionId") String competitionId);
 }
 
