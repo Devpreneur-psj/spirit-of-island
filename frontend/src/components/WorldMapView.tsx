@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { locations, Location, getUnlockedLocations } from '../config/locations'
 import { useSpiritlingStore } from '../stores/spiritlingStore'
 import { Spiritling, toDisplayFormat } from '../types'
+import IsometricBuilding from './IsometricBuilding'
 
 interface WorldMapViewProps {
   onLocationClick: (location: Location) => void
@@ -112,83 +113,22 @@ export default function WorldMapView({ onLocationClick, currentTab }: WorldMapVi
         </div>
       </div>
 
-      {/* 장소들 */}
+      {/* 장소들 - 이소메트릭 건물 형태 */}
       {unlockedLocations.map((location) => {
         const isActive = currentTab === location.tab
         const isHovered = hoveredLocation === location.id
         const isLocked = location.unlocked === false
 
         return (
-          <motion.div
+          <IsometricBuilding
             key={location.id}
-            className="absolute cursor-pointer group"
-            style={getLocationStyle(location)}
-            onHoverStart={() => setHoveredLocation(location.id)}
-            onHoverEnd={() => setHoveredLocation(null)}
+            location={location}
+            isHovered={isHovered || isActive}
+            isUnlocked={!isLocked}
             onClick={() => handleLocationClick(location)}
-            whileHover={{ scale: 1.2, zIndex: 10 }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ 
-              opacity: isLocked ? 0.5 : 1,
-              scale: isActive ? 1.15 : 1,
-            }}
-            transition={{ duration: 0.3 }}
-          >
-            {/* 장소 아이콘 */}
-            <div
-              className={`
-                relative w-16 h-16 sm:w-20 sm:h-20 rounded-full
-                bg-gradient-to-br ${location.color}
-                flex items-center justify-center
-                shadow-lg
-                ${isActive ? 'ring-4 ring-pastel-purple ring-offset-2' : ''}
-                ${isHovered ? 'shadow-2xl' : ''}
-                ${isLocked ? 'grayscale opacity-50' : ''}
-                transition-all duration-300
-              `}
-            >
-              <span className="text-3xl sm:text-4xl">{location.emoji}</span>
-              
-              {/* 펄스 효과 (활성화된 장소) */}
-              {isActive && (
-                <motion.div
-                  className="absolute inset-0 rounded-full bg-gradient-to-br from-pastel-purple to-pastel-pink opacity-50"
-                  animate={{
-                    scale: [1, 1.3, 1],
-                    opacity: [0.5, 0, 0.5],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                />
-              )}
-            </div>
-
-            {/* 장소 이름 툴팁 */}
-            <AnimatePresence>
-              {isHovered && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.8 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.8 }}
-                  className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gray-900 text-white text-xs sm:text-sm rounded-lg whitespace-nowrap z-20 shadow-xl"
-                >
-                  <div className="font-bold">{location.name}</div>
-                  <div className="text-gray-300 text-xs mt-1">{location.description}</div>
-                  {isLocked && location.level && (
-                    <div className="text-yellow-300 text-xs mt-1">
-                      레벨 {location.level} 필요
-                    </div>
-                  )}
-                  {/* 화살표 */}
-                  <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+            onMouseEnter={() => setHoveredLocation(location.id)}
+            onMouseLeave={() => setHoveredLocation(null)}
+          />
         )
       })}
 

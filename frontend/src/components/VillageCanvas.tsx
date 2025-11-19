@@ -78,13 +78,39 @@ export default function VillageCanvas({
             // 목표 지점에 도달했거나 목표가 없으면 새로운 목표 설정
             if (!target || 
                 (Math.abs(current.x - target.x) < 1 && Math.abs(current.y - target.y) < 1) ||
-                Math.random() < 0.01) {
-              // 랜덤한 새 위치 생성 (캔버스 내)
-              target = {
-                x: 15 + Math.random() * 70,
-                y: 20 + Math.random() * 60,
+                Math.random() < 0.008) {
+              // 건물 근처나 특정 위치로 이동할 확률
+              let newTarget
+              const rand = Math.random()
+              
+              if (rand < 0.3) {
+                // 정령의 집 근처 (15%, 70%)
+                newTarget = {
+                  x: 12 + Math.random() * 8,
+                  y: 65 + Math.random() * 10,
+                }
+              } else if (rand < 0.5) {
+                // 수련장 근처 (80%, 60%)
+                newTarget = {
+                  x: 75 + Math.random() * 10,
+                  y: 55 + Math.random() * 10,
+                }
+              } else if (rand < 0.7) {
+                // 상점 근처 (40%, 70%)
+                newTarget = {
+                  x: 35 + Math.random() * 10,
+                  y: 65 + Math.random() * 10,
+                }
+              } else {
+                // 랜덤 위치
+                newTarget = {
+                  x: 15 + Math.random() * 70,
+                  y: 20 + Math.random() * 60,
+                }
               }
-              newTargets.set(spiritling.id, target)
+              
+              newTargets.set(spiritling.id, newTarget)
+              target = newTarget
             }
             
             // 목표 지점으로 부드럽게 이동
@@ -214,7 +240,13 @@ export default function VillageCanvas({
       {/* 마을 배경 캔버스 */}
       <div
         ref={canvasRef}
-        className="relative w-full h-[600px] bg-gradient-to-br from-green-100 via-emerald-50 to-teal-100 rounded-2xl overflow-hidden shadow-inner"
+        className="relative w-full h-[600px] bg-gradient-to-br from-green-200 via-emerald-100 to-teal-100 rounded-2xl overflow-hidden shadow-inner"
+        style={{
+          backgroundImage: `
+            repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(0,0,0,0.03) 40px, rgba(0,0,0,0.03) 41px),
+            repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,0,0,0.03) 40px, rgba(0,0,0,0.03) 41px)
+          `,
+        }}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
@@ -249,29 +281,101 @@ export default function VillageCanvas({
             ☁️
           </motion.div>
 
-          {/* 나무 */}
-          <div className="absolute bottom-0 left-10 text-6xl opacity-40">🌳</div>
-          <div className="absolute bottom-0 right-20 text-5xl opacity-30">🌲</div>
+          {/* 이소메트릭 건물들 */}
+          {/* 정령의 집 */}
+          <div className="absolute bottom-20 left-[15%] transform -translate-x-1/2">
+            <div className="relative">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg shadow-lg"
+                style={{
+                  clipPath: 'polygon(0% 25%, 50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%)',
+                  filter: 'drop-shadow(4px 4px 8px rgba(0,0,0,0.3))',
+                }}
+              >
+                <div className="absolute inset-0 flex items-center justify-center text-3xl">🏠</div>
+              </div>
+              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-12 h-6 bg-black/10"
+                style={{
+                  clipPath: 'polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%)',
+                  transform: 'translateX(-50%) translateY(100%)',
+                }}
+              />
+            </div>
+          </div>
+
+          {/* 수련장 */}
+          <div className="absolute bottom-24 right-[20%] transform translate-x-1/2">
+            <div className="relative">
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-400 rounded-lg shadow-lg"
+                style={{
+                  clipPath: 'polygon(0% 25%, 50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%)',
+                  filter: 'drop-shadow(4px 4px 8px rgba(0,0,0,0.3))',
+                }}
+              >
+                <div className="absolute inset-0 flex items-center justify-center text-2xl">⚔️</div>
+              </div>
+              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-10 h-5 bg-black/10"
+                style={{
+                  clipPath: 'polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%)',
+                  transform: 'translateX(-50%) translateY(100%)',
+                }}
+              />
+            </div>
+          </div>
+
+          {/* 상점 */}
+          <div className="absolute bottom-16 left-[40%] transform -translate-x-1/2">
+            <div className="relative">
+              <div className="w-18 h-18 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-lg shadow-lg"
+                style={{
+                  clipPath: 'polygon(0% 25%, 50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%)',
+                  filter: 'drop-shadow(4px 4px 8px rgba(0,0,0,0.3))',
+                }}
+              >
+                <div className="absolute inset-0 flex items-center justify-center text-2xl">🛒</div>
+              </div>
+              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-11 h-5 bg-black/10"
+                style={{
+                  clipPath: 'polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%)',
+                  transform: 'translateX(-50%) translateY(100%)',
+                }}
+              />
+            </div>
+          </div>
+
+          {/* 나무들 */}
+          <motion.div
+            className="absolute bottom-0 left-10 text-6xl opacity-40"
+            animate={{ rotate: [0, 2, -2, 0] }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            🌳
+          </motion.div>
+          <motion.div
+            className="absolute bottom-0 right-20 text-5xl opacity-30"
+            animate={{ rotate: [0, -1.5, 1.5, 0] }}
+            transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            🌲
+          </motion.div>
           
-          {/* 집 */}
-          <div className="absolute bottom-10 left-1/4 text-5xl opacity-50">🏠</div>
-          <div className="absolute bottom-10 right-1/4 text-4xl opacity-40">🏡</div>
-          
-          {/* 꽃 */}
+          {/* 꽃들 */}
           <motion.div
             className="absolute bottom-5 left-1/3 text-2xl opacity-60"
-            animate={{ rotate: [0, 10, -10, 0] }}
+            animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
           >
             🌸
           </motion.div>
           <motion.div
             className="absolute bottom-8 right-1/3 text-xl opacity-50"
-            animate={{ rotate: [0, -8, 8, 0] }}
+            animate={{ rotate: [0, -8, 8, 0], scale: [1, 1.05, 1] }}
             transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
           >
             🌺
           </motion.div>
+          
+          {/* 연못 */}
+          <div className="absolute bottom-12 left-[60%] w-16 h-12 bg-blue-300/40 rounded-full blur-sm opacity-60"></div>
         </div>
 
         {/* 정령들 */}
