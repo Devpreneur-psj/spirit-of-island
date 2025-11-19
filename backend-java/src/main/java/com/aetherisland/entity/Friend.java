@@ -40,5 +40,23 @@ public class Friend {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "friend_id", insertable = false, updatable = false)
     private User friend;
+    
+    // 명시적 getter/setter (Lombok 백업용)
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
+    public String getFriendId() { return friendId; }
+    public void setFriendId(String friendId) { this.friendId = friendId; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+    public User getFriend() { return friend; }
+    public void setFriend(User friend) { this.friend = friend; }
 }
 

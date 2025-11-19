@@ -110,5 +110,57 @@ public class Spiritling {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+    
+    // 명시적 getter/setter (Lombok 백업용)
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getElement() { return element; }
+    public void setElement(String element) { this.element = element; }
+    public String getPersonality() { return personality; }
+    public void setPersonality(String personality) { this.personality = personality; }
+    public String getGrowthStage() { return growthStage; }
+    public void setGrowthStage(String growthStage) { this.growthStage = growthStage; }
+    public Integer getLevel() { return level; }
+    public void setLevel(Integer level) { this.level = level; }
+    public Integer getExperience() { return experience; }
+    public void setExperience(Integer experience) { this.experience = experience; }
+    public Integer getHealthStat() { return healthStat; }
+    public void setHealthStat(Integer healthStat) { this.healthStat = healthStat; }
+    public Integer getAgilityStat() { return agilityStat; }
+    public void setAgilityStat(Integer agilityStat) { this.agilityStat = agilityStat; }
+    public Integer getIntelligenceStat() { return intelligenceStat; }
+    public void setIntelligenceStat(Integer intelligenceStat) { this.intelligenceStat = intelligenceStat; }
+    public Integer getFriendlinessStat() { return friendlinessStat; }
+    public void setFriendlinessStat(Integer friendlinessStat) { this.friendlinessStat = friendlinessStat; }
+    public Integer getResilienceStat() { return resilienceStat; }
+    public void setResilienceStat(Integer resilienceStat) { this.resilienceStat = resilienceStat; }
+    public Integer getLuckStat() { return luckStat; }
+    public void setLuckStat(Integer luckStat) { this.luckStat = luckStat; }
+    public Integer getHunger() { return hunger; }
+    public void setHunger(Integer hunger) { this.hunger = hunger; }
+    public Integer getHappiness() { return happiness; }
+    public void setHappiness(Integer happiness) { this.happiness = happiness; }
+    public Integer getEnergy() { return energy; }
+    public void setEnergy(Integer energy) { this.energy = energy; }
+    public Integer getHealthStatus() { return healthStatus; }
+    public void setHealthStatus(Integer healthStatus) { this.healthStatus = healthStatus; }
+    public Integer getCleanliness() { return cleanliness; }
+    public void setCleanliness(Integer cleanliness) { this.cleanliness = cleanliness; }
+    public String getCurrentAction() { return currentAction; }
+    public void setCurrentAction(String currentAction) { this.currentAction = currentAction; }
+    public Map<String, Object> getActionData() { return actionData; }
+    public void setActionData(Map<String, Object> actionData) { this.actionData = actionData; }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
+    public User getOwner() { return owner; }
+    public void setOwner(User owner) { this.owner = owner; }
+    public List<ActionLog> getActionLogs() { return actionLogs; }
+    public void setActionLogs(List<ActionLog> actionLogs) { this.actionLogs = actionLogs; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
 
