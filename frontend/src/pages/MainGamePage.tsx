@@ -26,13 +26,7 @@ import FeatureModal from '../components/FeatureModal'
 export default function MainGamePage() {
   const { user, logout, fetchCurrentUser } = useAuthStore()
   const { spiritlings, fetchSpiritlings, selectedSpiritling, previousLevel } = useSpiritlingStore()
-  const [activeTab, setActiveTab] = useState<'spiritling' | 'shop' | 'inventory' | 'competition' | 'friends' | 'ranking' | 'achievements' | 'events'>('spiritling')
   const [openModal, setOpenModal] = useState<{ type: string; location: Location | null }>({ type: '', location: null })
-
-  // Memoize handlers to prevent unnecessary re-renders
-  const handleTabChange = useCallback((tab: 'spiritling' | 'shop' | 'inventory' | 'competition' | 'friends' | 'ranking' | 'achievements' | 'events') => {
-    setActiveTab(tab)
-  }, [])
 
   const handleLocationClick = useCallback((location: Location) => {
     if (location.unlocked === false) {
@@ -55,30 +49,17 @@ export default function MainGamePage() {
   // Memoize user coins to prevent unnecessary re-renders
   const userCoins = useMemo(() => user?.coins || 0, [user?.coins])
 
-  // Keyboard navigation for tabs
+  // ESC 키로 모달 닫기
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey) return // Ignore Ctrl/Cmd combinations
-      
-      const tabs: Array<'spiritling' | 'shop' | 'inventory' | 'competition' | 'friends' | 'ranking' | 'achievements' | 'events'> = [
-        'spiritling', 'shop', 'inventory', 'competition', 'friends', 'ranking', 'achievements', 'events'
-      ]
-      const currentIndex = tabs.indexOf(activeTab)
-      
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-        e.preventDefault()
-        const nextIndex = (currentIndex + 1) % tabs.length
-        handleTabChange(tabs[nextIndex])
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-        e.preventDefault()
-        const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length
-        handleTabChange(tabs[prevIndex])
+      if (e.key === 'Escape' && openModal.type) {
+        closeModal()
       }
     }
     
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [activeTab, handleTabChange])
+  }, [openModal.type, closeModal])
 
   useEffect(() => {
     fetchCurrentUser()
@@ -163,7 +144,6 @@ export default function MainGamePage() {
           >
             <WorldMapView 
               onLocationClick={handleLocationClick}
-              currentTab={activeTab}
             />
           </motion.div>
 
@@ -328,84 +308,59 @@ export default function MainGamePage() {
               aria-label="메인 메뉴 탭"
             >
               <button
-                onClick={() => handleTabChange('spiritling')}
-                role="tab"
-                aria-selected={activeTab === 'spiritling'}
-                aria-controls="spiritling-tabpanel"
-                id="spiritling-tab"
-                tabIndex={activeTab === 'spiritling' ? 0 : -1}
-                className={`px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 ${
-                  activeTab === 'spiritling'
-                    ? 'text-pastel-purple border-b-2 border-pastel-purple'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
+                onClick={() => {
+                  const location = locations.find(loc => loc.id === 'element-home')
+                  if (location) setOpenModal({ type: 'element-home', location })
+                }}
+                role="button"
+                className="px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 text-gray-600 hover:text-gray-800"
               >
                 마정령
               </button>
               <button
-                onClick={() => handleTabChange('shop')}
-                role="tab"
-                aria-selected={activeTab === 'shop'}
-                aria-controls="shop-tabpanel"
-                id="shop-tab"
-                tabIndex={activeTab === 'shop' ? 0 : -1}
-                className={`px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 ${
-                  activeTab === 'shop'
-                    ? 'text-pastel-purple border-b-2 border-pastel-purple'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
+                onClick={() => {
+                  const location = locations.find(loc => loc.id === 'item-shop')
+                  if (location) setOpenModal({ type: 'item-shop', location })
+                }}
+                role="button"
+                className="px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 text-gray-600 hover:text-gray-800"
               >
                 상점
               </button>
               <button
-                onClick={() => handleTabChange('inventory')}
-                role="tab"
-                aria-selected={activeTab === 'inventory'}
-                aria-controls="inventory-tabpanel"
-                id="inventory-tab"
-                tabIndex={activeTab === 'inventory' ? 0 : -1}
-                className={`px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 ${
-                  activeTab === 'inventory'
-                    ? 'text-pastel-purple border-b-2 border-pastel-purple'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
+                onClick={() => {
+                  const location = locations.find(loc => loc.id === 'inventory')
+                  if (location) setOpenModal({ type: 'inventory', location })
+                }}
+                role="button"
+                className="px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 text-gray-600 hover:text-gray-800"
               >
                 인벤토리
               </button>
               <button
-                onClick={() => handleTabChange('competition')}
-                role="tab"
-                aria-selected={activeTab === 'competition'}
-                aria-controls="competition-tabpanel"
-                id="competition-tab"
-                tabIndex={activeTab === 'competition' ? 0 : -1}
-                className={`px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 ${
-                  activeTab === 'competition'
-                    ? 'text-pastel-purple border-b-2 border-pastel-purple'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
+                onClick={() => {
+                  const location = locations.find(loc => loc.id === 'competition-hall')
+                  if (location) setOpenModal({ type: 'competition-hall', location })
+                }}
+                role="button"
+                className="px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 text-gray-600 hover:text-gray-800"
               >
                 대회
               </button>
               <button
-                onClick={() => handleTabChange('friends')}
-                role="tab"
-                aria-selected={activeTab === 'friends'}
-                aria-controls="friends-tabpanel"
-                id="friends-tab"
-                tabIndex={activeTab === 'friends' ? 0 : -1}
-                className={`px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 ${
-                  activeTab === 'friends'
-                    ? 'text-pastel-purple border-b-2 border-pastel-purple'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
+                onClick={() => {
+                  const location = locations.find(loc => loc.id === 'friend-village')
+                  if (location) setOpenModal({ type: 'friend-village', location })
+                }}
+                role="button"
+                className="px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 text-gray-600 hover:text-gray-800"
               >
                 친구
               </button>
               <button
                 onClick={() => {
-                  const villageLocation = locations.find(loc => loc.id === 'village-square')
-                  if (villageLocation) setOpenModal({ type: 'village-square', location: villageLocation })
+                  const location = locations.find(loc => loc.id === 'village-square')
+                  if (location) setOpenModal({ type: 'village-square', location })
                 }}
                 role="button"
                 className="px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 text-gray-600 hover:text-gray-800"
@@ -413,47 +368,32 @@ export default function MainGamePage() {
                 마을
               </button>
               <button
-                onClick={() => handleTabChange('ranking')}
-                role="tab"
-                aria-selected={activeTab === 'ranking'}
-                aria-controls="ranking-tabpanel"
-                id="ranking-tab"
-                tabIndex={activeTab === 'ranking' ? 0 : -1}
-                className={`px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 ${
-                  activeTab === 'ranking'
-                    ? 'text-pastel-purple border-b-2 border-pastel-purple'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
+                onClick={() => {
+                  const location = locations.find(loc => loc.id === 'ranking-hall')
+                  if (location) setOpenModal({ type: 'ranking-hall', location })
+                }}
+                role="button"
+                className="px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 text-gray-600 hover:text-gray-800"
               >
                 랭킹
               </button>
               <button
-                onClick={() => handleTabChange('achievements')}
-                role="tab"
-                aria-selected={activeTab === 'achievements'}
-                aria-controls="achievements-tabpanel"
-                id="achievements-tab"
-                tabIndex={activeTab === 'achievements' ? 0 : -1}
-                className={`px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 ${
-                  activeTab === 'achievements'
-                    ? 'text-pastel-purple border-b-2 border-pastel-purple'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
+                onClick={() => {
+                  const location = locations.find(loc => loc.id === 'achievement-island')
+                  if (location) setOpenModal({ type: 'achievement-island', location })
+                }}
+                role="button"
+                className="px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 text-gray-600 hover:text-gray-800"
               >
                 업적
               </button>
               <button
-                onClick={() => handleTabChange('events')}
-                role="tab"
-                aria-selected={activeTab === 'events'}
-                aria-controls="events-tabpanel"
-                id="events-tab"
-                tabIndex={activeTab === 'events' ? 0 : -1}
-                className={`px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 ${
-                  activeTab === 'events'
-                    ? 'text-pastel-purple border-b-2 border-pastel-purple'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
+                onClick={() => {
+                  const location = locations.find(loc => loc.id === 'event-island')
+                  if (location) setOpenModal({ type: 'event-island', location })
+                }}
+                role="button"
+                className="px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 text-gray-600 hover:text-gray-800"
               >
                 이벤트
               </button>
