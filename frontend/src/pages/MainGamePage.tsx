@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { Suspense } from 'react'
 import WorldMapView from '../components/WorldMapView'
 import LevelUpNotification from '../components/LevelUpNotification'
-import { Location } from '../config/locations'
+import { Location, locations } from '../config/locations'
 import {
   SpiritlingProfile,
   ActionPanel,
@@ -21,13 +21,13 @@ import {
 import RankingList from '../components/RankingList'
 import AchievementList from '../components/AchievementList'
 import EventList from '../components/EventList'
-import VillageModal from '../components/VillageModal'
+import FeatureModal from '../components/FeatureModal'
 
 export default function MainGamePage() {
   const { user, logout, fetchCurrentUser } = useAuthStore()
   const { spiritlings, fetchSpiritlings, selectedSpiritling, previousLevel } = useSpiritlingStore()
   const [activeTab, setActiveTab] = useState<'spiritling' | 'shop' | 'inventory' | 'competition' | 'friends' | 'ranking' | 'achievements' | 'events'>('spiritling')
-  const [showVillageModal, setShowVillageModal] = useState(false)
+  const [openModal, setOpenModal] = useState<{ type: string; location: Location | null }>({ type: '', location: null })
 
   // Memoize handlers to prevent unnecessary re-renders
   const handleTabChange = useCallback((tab: 'spiritling' | 'shop' | 'inventory' | 'competition' | 'friends' | 'ranking' | 'achievements' | 'events') => {
@@ -35,13 +35,18 @@ export default function MainGamePage() {
   }, [])
 
   const handleLocationClick = useCallback((location: Location) => {
-    if (location.id === 'village-square') {
-      // 마을은 별도 모달로 열림
-      setShowVillageModal(true)
-    } else if (location.tab) {
-      handleTabChange(location.tab as any)
+    if (location.unlocked === false) {
+      alert(`이 장소는 레벨 ${location.level || 0}에 잠금 해제됩니다.`)
+      return
     }
-  }, [handleTabChange])
+    
+    // 모든 장소를 모달로 열기
+    setOpenModal({ type: location.id, location })
+  }, [])
+  
+  const closeModal = useCallback(() => {
+    setOpenModal({ type: '', location: null })
+  }, [])
 
   const handleLogout = useCallback(() => {
     logout()
@@ -162,9 +167,151 @@ export default function MainGamePage() {
             />
           </motion.div>
 
-          {/* 마을 모달 */}
-          {showVillageModal && (
-            <VillageModal onClose={() => setShowVillageModal(false)} />
+          {/* 기능 모달들 */}
+          {openModal.location && (
+            <FeatureModal
+              isOpen={openModal.type === 'element-home'}
+              onClose={closeModal}
+              title="원소 홈"
+              description="마정령들이 휴식하는 곳"
+              icon="🏠"
+              color="from-purple-500 to-pink-600"
+            >
+              <Suspense fallback={<TabLoadingFallback />}>
+                {selectedSpiritling ? (
+                  <>
+                    <SpiritlingProfile spiritling={selectedSpiritling} />
+                    <ActionPanel spiritling={selectedSpiritling} />
+                    <ActionLog spiritlingId={selectedSpiritling.id} />
+                  </>
+                ) : (
+                  <div className="card">
+                    <h3 className="text-xl font-bold mb-4">마정령 목록</h3>
+                    <SpiritlingList spiritlings={spiritlings} />
+                  </div>
+                )}
+              </Suspense>
+            </FeatureModal>
+          )}
+
+          {openModal.location && (
+            <FeatureModal
+              isOpen={openModal.type === 'item-shop'}
+              onClose={closeModal}
+              title="아이템 상점"
+              description="다양한 아이템을 구매하세요"
+              icon="🛒"
+              color="from-orange-500 to-yellow-600"
+            >
+              <Suspense fallback={<TabLoadingFallback />}>
+                <ItemShop />
+              </Suspense>
+            </FeatureModal>
+          )}
+
+          {openModal.location && (
+            <FeatureModal
+              isOpen={openModal.type === 'inventory'}
+              onClose={closeModal}
+              title="보관함"
+              description="보유한 아이템을 확인하세요"
+              icon="📦"
+              color="from-blue-500 to-cyan-600"
+            >
+              <Suspense fallback={<TabLoadingFallback />}>
+                <Inventory />
+              </Suspense>
+            </FeatureModal>
+          )}
+
+          {openModal.location && (
+            <FeatureModal
+              isOpen={openModal.type === 'competition-hall'}
+              onClose={closeModal}
+              title="대회장"
+              description="마정령 대회에 참가하세요"
+              icon="🏆"
+              color="from-yellow-500 to-orange-600"
+            >
+              <Suspense fallback={<TabLoadingFallback />}>
+                <CompetitionList />
+              </Suspense>
+            </FeatureModal>
+          )}
+
+          {openModal.location && (
+            <FeatureModal
+              isOpen={openModal.type === 'friend-village'}
+              onClose={closeModal}
+              title="친구 마을"
+              description="친구들과 소통하세요"
+              icon="👥"
+              color="from-green-500 to-emerald-600"
+            >
+              <Suspense fallback={<TabLoadingFallback />}>
+                <FriendList />
+              </Suspense>
+            </FeatureModal>
+          )}
+
+          {openModal.location && (
+            <FeatureModal
+              isOpen={openModal.type === 'village-square'}
+              onClose={closeModal}
+              title="마을 광장"
+              description="다른 플레이어들을 만나보세요"
+              icon="🏛️"
+              color="from-indigo-500 to-purple-600"
+            >
+              <Suspense fallback={<TabLoadingFallback />}>
+                <VillageView />
+              </Suspense>
+            </FeatureModal>
+          )}
+
+          {openModal.location && (
+            <FeatureModal
+              isOpen={openModal.type === 'ranking-hall'}
+              onClose={closeModal}
+              title="명예의 전당"
+              description="최고의 마정령들을 확인하세요"
+              icon="⭐"
+              color="from-amber-500 to-yellow-600"
+            >
+              <Suspense fallback={<TabLoadingFallback />}>
+                <RankingList />
+              </Suspense>
+            </FeatureModal>
+          )}
+
+          {openModal.location && (
+            <FeatureModal
+              isOpen={openModal.type === 'achievement-island'}
+              onClose={closeModal}
+              title="업적 섬"
+              description="달성한 업적을 확인하세요"
+              icon="🎖️"
+              color="from-rose-500 to-pink-600"
+            >
+              <Suspense fallback={<TabLoadingFallback />}>
+                <AchievementList />
+              </Suspense>
+            </FeatureModal>
+          )}
+
+          {openModal.location && (
+            <FeatureModal
+              isOpen={openModal.type === 'event-island'}
+              onClose={closeModal}
+              title="이벤트 섬"
+              description="진행 중인 이벤트를 확인하세요"
+              icon="🎉"
+              color="from-violet-500 to-purple-600"
+            >
+              <Suspense fallback={<TabLoadingFallback />}>
+                <EventList />
+              </Suspense>
+            </FeatureModal>
           )}
 
           {/* Right Column - Profile and Actions */}
@@ -256,7 +403,10 @@ export default function MainGamePage() {
                 친구
               </button>
               <button
-                onClick={() => setShowVillageModal(true)}
+                onClick={() => {
+                  const villageLocation = locations.find(loc => loc.id === 'village-square')
+                  if (villageLocation) setOpenModal({ type: 'village-square', location: villageLocation })
+                }}
                 role="button"
                 className="px-2 sm:px-4 py-2 text-sm sm:text-base font-medium transition-colors whitespace-nowrap min-w-fit focus:outline-none focus:ring-2 focus:ring-pastel-purple focus:ring-offset-2 text-gray-600 hover:text-gray-800"
               >
@@ -309,81 +459,47 @@ export default function MainGamePage() {
               </button>
             </div>
 
-            {/* 탭 컨텐츠 */}
-            {activeTab === 'spiritling' && (
-              <div role="tabpanel" id="spiritling-tabpanel" aria-labelledby="spiritling-tab">
-                <Suspense fallback={<TabLoadingFallback />}>
-                  {selectedSpiritling ? (
-                    <>
-                      <SpiritlingProfile spiritling={selectedSpiritling} />
-                      <ActionPanel spiritling={selectedSpiritling} />
-                      <ActionLog spiritlingId={selectedSpiritling.id} />
-                    </>
-                  ) : (
-                    <div className="card">
-                      <h3 className="text-xl font-bold mb-4">마정령 목록</h3>
-                      <SpiritlingList spiritlings={spiritlings} />
-                    </div>
-                  )}
-                </Suspense>
+            {/* 기본 안내 메시지 */}
+            <div className="card">
+              <div className="text-center py-8">
+                <motion.div
+                  animate={{
+                    scale: [1, 1.1, 1],
+                    rotate: [0, 5, -5, 0],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                  className="text-5xl mb-4"
+                >
+                  🗺️
+                </motion.div>
+                <h3 className="text-xl font-bold mb-2">정령의 섬에 오신 것을 환영합니다!</h3>
+                <p className="text-gray-600 mb-4">
+                  지도에서 장소를 클릭하거나 상단 메뉴를 사용하여 다양한 기능을 이용하세요.
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-6">
+                  <div className="p-3 bg-purple-50 rounded-lg">
+                    <div className="text-2xl mb-1">🏠</div>
+                    <div className="text-xs text-gray-600">원소 홈</div>
+                  </div>
+                  <div className="p-3 bg-orange-50 rounded-lg">
+                    <div className="text-2xl mb-1">🛒</div>
+                    <div className="text-xs text-gray-600">상점</div>
+                  </div>
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <div className="text-2xl mb-1">📦</div>
+                    <div className="text-xs text-gray-600">보관함</div>
+                  </div>
+                  <div className="p-3 bg-yellow-50 rounded-lg">
+                    <div className="text-2xl mb-1">🏆</div>
+                    <div className="text-xs text-gray-600">대회</div>
+                  </div>
+                </div>
               </div>
-            )}
-
-            {activeTab === 'shop' && (
-              <div role="tabpanel" id="shop-tabpanel" aria-labelledby="shop-tab">
-                <Suspense fallback={<TabLoadingFallback />}>
-                  <ItemShop />
-                </Suspense>
-              </div>
-            )}
-
-            {activeTab === 'inventory' && (
-              <div role="tabpanel" id="inventory-tabpanel" aria-labelledby="inventory-tab">
-                <Suspense fallback={<TabLoadingFallback />}>
-                  <Inventory />
-                </Suspense>
-              </div>
-            )}
-
-            {activeTab === 'competition' && (
-              <div role="tabpanel" id="competition-tabpanel" aria-labelledby="competition-tab">
-                <Suspense fallback={<TabLoadingFallback />}>
-                  <CompetitionList />
-                </Suspense>
-              </div>
-            )}
-
-            {activeTab === 'friends' && (
-              <div role="tabpanel" id="friends-tabpanel" aria-labelledby="friends-tab">
-                <Suspense fallback={<TabLoadingFallback />}>
-                  <FriendList />
-                </Suspense>
-              </div>
-            )}
-
-            {activeTab === 'ranking' && (
-              <div role="tabpanel" id="ranking-tabpanel" aria-labelledby="ranking-tab">
-                <Suspense fallback={<TabLoadingFallback />}>
-                  <RankingList />
-                </Suspense>
-              </div>
-            )}
-
-            {activeTab === 'achievements' && (
-              <div role="tabpanel" id="achievements-tabpanel" aria-labelledby="achievements-tab">
-                <Suspense fallback={<TabLoadingFallback />}>
-                  <AchievementList />
-                </Suspense>
-              </div>
-            )}
-
-            {activeTab === 'events' && (
-              <div role="tabpanel" id="events-tabpanel" aria-labelledby="events-tab">
-                <Suspense fallback={<TabLoadingFallback />}>
-                  <EventList />
-                </Suspense>
-              </div>
-            )}
+            </div>
           </motion.div>
         </div>
       </div>
