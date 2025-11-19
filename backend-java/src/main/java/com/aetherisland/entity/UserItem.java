@@ -33,5 +33,19 @@ public class UserItem {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
+    
+    // Getters and Setters
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
+    public String getItemId() { return itemId; }
+    public void setItemId(String itemId) { this.itemId = itemId; }
+    public Integer getQuantity() { return quantity; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
 

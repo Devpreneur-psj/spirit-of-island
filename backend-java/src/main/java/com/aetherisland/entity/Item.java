@@ -33,5 +33,21 @@ public class Item {
     
     @Column(nullable = false)
     private String rarity = "common";
+    
+    // Getters and Setters
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public Map<String, Object> getEffect() { return effect; }
+    public void setEffect(Map<String, Object> effect) { this.effect = effect; }
+    public Integer getPrice() { return price; }
+    public void setPrice(Integer price) { this.price = price; }
+    public String getRarity() { return rarity; }
+    public void setRarity(String rarity) { this.rarity = rarity; }
 }
 
