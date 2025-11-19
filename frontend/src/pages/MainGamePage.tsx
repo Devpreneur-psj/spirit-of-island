@@ -3,8 +3,9 @@ import { useAuthStore } from '../stores/authStore'
 import { useSpiritlingStore } from '../stores/spiritlingStore'
 import { motion } from 'framer-motion'
 import { Suspense } from 'react'
-import IslandView from '../components/IslandView'
+import WorldMapView from '../components/WorldMapView'
 import LevelUpNotification from '../components/LevelUpNotification'
+import { Location } from '../config/locations'
 import {
   SpiritlingProfile,
   ActionPanel,
@@ -30,6 +31,12 @@ export default function MainGamePage() {
   const handleTabChange = useCallback((tab: 'spiritling' | 'shop' | 'inventory' | 'competition' | 'friends' | 'village' | 'ranking' | 'achievements' | 'events') => {
     setActiveTab(tab)
   }, [])
+
+  const handleLocationClick = useCallback((location: Location) => {
+    if (location.tab) {
+      handleTabChange(location.tab as any)
+    }
+  }, [handleTabChange])
 
   const handleLogout = useCallback(() => {
     logout()
@@ -137,14 +144,17 @@ export default function MainGamePage() {
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* Left Column - Island View */}
+          {/* Left Column - World Map View */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
             className="lg:col-span-2 order-2 lg:order-1"
           >
-            <IslandView />
+            <WorldMapView 
+              onLocationClick={handleLocationClick}
+              currentTab={activeTab}
+            />
           </motion.div>
 
           {/* Right Column - Profile and Actions */}
