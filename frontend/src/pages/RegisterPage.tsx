@@ -22,6 +22,8 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    
+    console.log('📝 회원가입 시도:', { username, email, password: '***' })
 
     if (password !== confirmPassword) {
       setError('비밀번호가 일치하지 않습니다.')
@@ -33,13 +35,56 @@ export default function RegisterPage() {
       return
     }
 
+    // UTF-8 바이트 길이 확인 (bcrypt는 최대 72바이트)
+    const passwordBytes = new TextEncoder().encode(password).length
+    if (passwordBytes > 72) {
+      setError('비밀번호가 너무 깁니다. (최대 72바이트)')
+      return
+    }
+
     setLoading(true)
+    console.log('🔄 register 함수 호출 시작...')
 
     try {
       await register(username, email, password)
+      console.log('✅ 회원가입 성공!')
       navigate('/')
     } catch (err: any) {
-      setError(err.response?.data?.detail || '회원가입에 실패했습니다.')
+      console.error('❌ 회원가입 오류:', err)
+      // 다양한 에러 형식 처리
+      let errorMessage = '회원가입에 실패했습니다.'
+      
+      // Network Error 처리
+      if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error' || err?.code === 'ECONNREFUSED') {
+        errorMessage = `서버에 연결할 수 없습니다. 백엔드가 실행 중인지 확인해주세요.\n\n확인 사항:\n1. 백엔드가 http://localhost:8000에서 실행 중인지 확인\n2. 브라우저 콘솔(F12)에서 API URL 확인\n3. 백엔드 로그 확인`
+      }
+      // 타임아웃 에러
+      else if (err?.code === 'ECONNABORTED' || err?.message?.includes('timeout')) {
+        errorMessage = '요청 시간이 초과되었습니다. 백엔드가 응답하지 않습니다.'
+      }
+      // 응답이 있는 경우
+      else if (err?.response?.data?.detail) {
+        // FastAPI ValidationError의 detail이 문자열인 경우
+        if (typeof err.response.data.detail === 'string') {
+          errorMessage = err.response.data.detail
+        } 
+        // FastAPI ValidationError의 detail이 배열인 경우
+        else if (Array.isArray(err.response.data.detail)) {
+          errorMessage = err.response.data.detail.map((item: any) => item.msg || item.message || JSON.stringify(item)).join(', ')
+        }
+        // 객체인 경우
+        else if (typeof err.response.data.detail === 'object') {
+          errorMessage = JSON.stringify(err.response.data.detail)
+        }
+      } 
+      // 기타 에러 메시지
+      else if (err?.message) {
+        errorMessage = err.message
+      } else if (typeof err === 'string') {
+        errorMessage = err
+      }
+      
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -119,7 +164,7 @@ export default function RegisterPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="p-3 bg-red-100 text-red-700 rounded-xl text-sm"
+              className="p-3 bg-red-100 text-red-700 rounded-xl text-sm whitespace-pre-line"
             >
               {error}
             </motion.div>

@@ -22,11 +22,62 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
 
+    console.log('🔐 로그인 시도:', { username })
+
     try {
       await login(username, password)
+      console.log('✅ 로그인 성공!')
       navigate('/')
     } catch (err: any) {
-      setError(err.response?.data?.detail || '로그인에 실패했습니다.')
+      console.error('❌ 로그인 오류:', err)
+      
+      // 다양한 에러 형식 처리
+      let errorMessage = '로그인에 실패했습니다.'
+      
+      // Network Error 처리
+      if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error' || err?.code === 'ECONNREFUSED') {
+        errorMessage = `서버에 연결할 수 없습니다. 백엔드가 실행 중인지 확인해주세요.\n\n확인 사항:\n1. 백엔드가 http://localhost:8000에서 실행 중인지 확인\n2. 브라우저 콘솔(F12)에서 API URL 확인\n3. 백엔드 로그 확인`
+      }
+      // 타임아웃 에러
+      else if (err?.code === 'ECONNABORTED' || err?.message?.includes('timeout')) {
+        errorMessage = '요청 시간이 초과되었습니다. 백엔드가 응답하지 않습니다.'
+      }
+      // 401 Unauthorized - 인증 실패
+      else if (err?.response?.status === 401) {
+        // 백엔드에서 반환하는 상세 메시지 사용
+        errorMessage = err.response?.data?.detail || '사용자 이름 또는 비밀번호가 올바르지 않습니다.'
+      }
+      // 400 Bad Request - 잘못된 요청
+      else if (err?.response?.status === 400) {
+        errorMessage = err.response?.data?.detail || '잘못된 요청입니다. 입력 정보를 확인해주세요.'
+      }
+      // 500 Internal Server Error
+      else if (err?.response?.status === 500) {
+        errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+      }
+      // 응답이 있는 경우
+      else if (err?.response?.data?.detail) {
+        // FastAPI ValidationError의 detail이 문자열인 경우
+        if (typeof err.response.data.detail === 'string') {
+          errorMessage = err.response.data.detail
+        } 
+        // FastAPI ValidationError의 detail이 배열인 경우
+        else if (Array.isArray(err.response.data.detail)) {
+          errorMessage = err.response.data.detail.map((item: any) => item.msg || item.message || JSON.stringify(item)).join(', ')
+        }
+        // 객체인 경우
+        else if (typeof err.response.data.detail === 'object') {
+          errorMessage = JSON.stringify(err.response.data.detail)
+        }
+      } 
+      // 기타 에러 메시지
+      else if (err?.message) {
+        errorMessage = err.message
+      } else if (typeof err === 'string') {
+        errorMessage = err
+      }
+      
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -78,7 +129,7 @@ export default function LoginPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="p-3 bg-red-100 text-red-700 rounded-xl text-sm"
+              className="p-3 bg-red-100 text-red-700 rounded-xl text-sm whitespace-pre-line"
             >
               {error}
             </motion.div>

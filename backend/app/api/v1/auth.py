@@ -14,38 +14,58 @@ router = APIRouter()
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     """회원가입"""
-    # 사용자 이름 중복 확인
-    existing_user = db.query(User).filter(User.username == user_data.username).first()
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="이미 존재하는 사용자 이름입니다."
+    print(f"📝 회원가입 요청 받음: {user_data.username}, {user_data.email}")
+    
+    try:
+        # 사용자 이름 중복 확인
+        print("🔍 사용자 이름 중복 확인 중...")
+        existing_user = db.query(User).filter(User.username == user_data.username).first()
+        if existing_user:
+            print(f"❌ 이미 존재하는 사용자 이름: {user_data.username}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="이미 존재하는 사용자 이름입니다."
+            )
+        
+        # 이메일 중복 확인
+        print("🔍 이메일 중복 확인 중...")
+        existing_email = db.query(User).filter(User.email == user_data.email).first()
+        if existing_email:
+            print(f"❌ 이미 존재하는 이메일: {user_data.email}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="이미 존재하는 이메일입니다."
+            )
+        
+        # 새 사용자 생성
+        print("👤 새 사용자 생성 중...")
+        import uuid
+        hashed_password = get_password_hash(user_data.password)
+        new_user = User(
+            id=str(uuid.uuid4()),
+            username=user_data.username,
+            email=user_data.email,
+            hashed_password=hashed_password,
+            coins=1000
         )
-    
-    # 이메일 중복 확인
-    existing_email = db.query(User).filter(User.email == user_data.email).first()
-    if existing_email:
+        
+        print("💾 데이터베이스에 저장 중...")
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        
+        print(f"✅ 회원가입 성공: {new_user.username} (ID: {new_user.id})")
+        return new_user
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ 회원가입 오류: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="이미 존재하는 이메일입니다."
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"회원가입 처리 중 오류가 발생했습니다: {str(e)}"
         )
-    
-    # 새 사용자 생성
-    import uuid
-    hashed_password = get_password_hash(user_data.password)
-    new_user = User(
-        id=str(uuid.uuid4()),
-        username=user_data.username,
-        email=user_data.email,
-        hashed_password=hashed_password,
-        coins=1000
-    )
-    
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    
-    return new_user
 
 
 @router.post("/login", response_model=Token)

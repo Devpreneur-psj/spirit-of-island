@@ -4,7 +4,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-transparent;
   }
   body {
     @apply bg-gradient-to-br from-pastel-blue via-pastel-purple to-pastel-pink min-h-screen;
