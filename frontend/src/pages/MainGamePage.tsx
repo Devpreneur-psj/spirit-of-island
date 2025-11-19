@@ -23,6 +23,7 @@ import AchievementList from '../components/AchievementList'
 import EventList from '../components/EventList'
 import FeatureModal from '../components/FeatureModal'
 import VillageCanvas from '../components/VillageCanvas'
+import TaskAssignmentPanel from '../components/TaskAssignmentPanel'
 
 export default function MainGamePage() {
   const { user, logout, fetchCurrentUser } = useAuthStore()
@@ -186,6 +187,15 @@ export default function MainGamePage() {
                           </button>
                         </div>
                         <SpiritlingProfile spiritling={homeSelectedSpiritling} />
+                        <div className="mt-4">
+                          <TaskAssignmentPanel 
+                            spiritling={homeSelectedSpiritling}
+                            onTaskAssigned={() => {
+                              // 작업 지정 후 정령 목록 새로고침
+                              fetchSpiritlings()
+                            }}
+                          />
+                        </div>
                         <div className="mt-4">
                           <ActionPanel spiritling={homeSelectedSpiritling} />
                         </div>

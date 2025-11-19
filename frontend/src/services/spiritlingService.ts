@@ -61,5 +61,10 @@ export const spiritlingService = {
     const response = await api.post<Spiritling>(`/spiritlings/${id}/train?stat_type=${statType}`)
     return response.data
   },
+
+  async assignTask(id: string, task: string): Promise<Spiritling> {
+    const response = await api.post<Spiritling>(`/spiritlings/${id}/assign-task`, { task })
+    return response.data
+  },
 }
 

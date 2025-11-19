@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/spiritlings")
@@ -87,15 +88,30 @@ public class SpiritlingController {
         return ResponseEntity.ok(response);
     }
     
-    @PostMapping("/{id}/train")
-    public ResponseEntity<SpiritlingResponse> trainSpiritling(
-        @PathVariable String id,
-        @RequestParam String stat_type,
-        Authentication authentication
-    ) {
-        String userId = authentication.getName();
-        SpiritlingResponse response = spiritlingService.trainSpiritling(id, userId, stat_type);
-        return ResponseEntity.ok(response);
+        @PostMapping("/{id}/train")
+        public ResponseEntity<SpiritlingResponse> trainSpiritling(
+            @PathVariable String id,
+            @RequestParam String stat_type,
+            Authentication authentication
+        ) {
+            String userId = authentication.getName();
+            SpiritlingResponse response = spiritlingService.trainSpiritling(id, userId, stat_type);
+            return ResponseEntity.ok(response);
+        }
+
+        @PostMapping("/{id}/assign-task")
+        public ResponseEntity<SpiritlingResponse> assignTask(
+            @PathVariable String id,
+            @RequestBody Map<String, String> request,
+            Authentication authentication
+        ) {
+            String userId = authentication.getName();
+            String task = request.get("task");
+            if (task == null || task.isEmpty()) {
+                throw new RuntimeException("작업을 지정해주세요.");
+            }
+            SpiritlingResponse response = spiritlingService.assignTask(id, userId, task);
+            return ResponseEntity.ok(response);
+        }
     }
-}
 
