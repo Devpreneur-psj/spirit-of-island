@@ -30,6 +30,108 @@ export default function SpiritlingList({ spiritlings, onSpiritlingSelect, readOn
 
   return (
     <div className="space-y-2">
+      {!readOnly && (
+        <motion.button
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          onClick={handleCreateClick}
+          className="w-full btn-primary mb-4"
+        >
+          + 새 마정령 만들기
+        </motion.button>
+      )}
+
+      <AnimatePresence>
+        {showCreateForm && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="card mb-4"
+          >
+            <h3 className="text-xl font-bold mb-4">새 마정령 만들기</h3>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">이름</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pastel-purple"
+                  placeholder="마정령 이름을 입력하세요"
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">속성</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {elements.map((elem) => (
+                    <button
+                      key={elem.value}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, element: elem.value })}
+                      className={`px-4 py-2 border rounded-lg transition-all ${
+                        formData.element === elem.value
+                          ? 'bg-pastel-purple text-white border-pastel-purple'
+                          : 'hover:bg-gray-50'
+                      }`}
+                      disabled={isLoading}
+                    >
+                      {elem.emoji} {elem.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">성격</label>
+                <select
+                  value={formData.personality}
+                  onChange={(e) => setFormData({ ...formData, personality: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pastel-purple"
+                  disabled={isLoading}
+                >
+                  {personalities.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {error && (
+                <div className="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  className="flex-1 btn-primary"
+                  disabled={isLoading}
+                >
+                  {isLoading ? '생성 중...' : '생성하기'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateForm(false)
+                    setError('')
+                    setFormData({ name: '', element: 'fire', personality: '활발' })
+                  }}
+                  className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  disabled={isLoading}
+                >
+                  취소
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {spiritlings.map((spiritling, index) => (
         <motion.button
           key={spiritling.id}
